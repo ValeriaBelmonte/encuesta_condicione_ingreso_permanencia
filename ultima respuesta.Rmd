@@ -1,0 +1,69 @@
+---
+title: "Me siento parte de la universidad"
+author: "Belmonte Valeria"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+  encoding: "UTF-8"
+---
+
+
+
+```{r librerias inciales,  warning=FALSE, cache=FALSE, message=FALSE,echo=FALSE}
+library(tidyverse)
+library(viridis)  #Para seleccionar paletas de color
+library(ggthemes) #Para elegir temas o plantillas de diseño para tu gráfico
+library(hrbrthemes)#Para elegir más temas o plantillas de diseño para tu gráfico
+library(flextable)# para dibujar tablas elegantes
+library(DT) # para tablas grandes 
+#Sys.setlocale(category = "LC_ALL", locale = "Spanish")
+library(ggthemes) # temas para los fondos de los graficos ggplot
+library(paletteer) # para instalar paleta de colores 
+library(treemap)
+```
+
+
+```{r setup, include=FALSE}
+options(encoding = 'UTF-8')
+```
+
+
+```{r datos, warning=FALSE, cache=FALSE, message=FALSE,echo=FALSE}
+#carga de datos 
+
+library(readxl)
+d_encuesta <- read_excel("datos originales/respuesta_11_5.xlsx", 
+    na = "NA")
+d_encuesta<-d_encuesta %>%
+  mutate(Facultad = recode( Facultad,"Veterinarias" = "Cs. Veterinarias", "Ciencias Exactas y Naturales"="Cs. Exactas y Naturales","Ciencias de la Salud"="Cs. de la Salud","Ciencias Económicas y Jurídicas"="Cs. Económicas y Jurídicas","Ciencias Humanas (SR)"="Cs. Humanas(SR)",
+                            "Ciencias Humanas( GP)"="Cs. Humanas(GP)")) 
+d_encuesta<-d_encuesta %>%  mutate(Lugar_de_Origen=recode( Lugar_de_Origen, "Otras localidades de la Prov. de La Pampa"="Otras loc.de la Pampa"))
+d_encuesta$Edad=factor(d_encuesta$Edad, levels=c("Menos de 19 años","19 a 24 años","25 a 34 años","35 a 44 años", "45 a 50 años","Más de 50 años"))
+d_encuesta$Lugar_de_Origen=factor(d_encuesta$Lugar_de_Origen, levels=c("Santa Rosa","General Pico","Otras loc.de la Pampa","Otra Provincia", 	"Otro País"))
+d_encuesta$genero <- factor(d_encuesta$genero, levels = c("Mujer", "Varón", "Otro"))
+d_encuesta$año_e_secundario=factor(d_encuesta$año_e_secundario, levels=c("antes del 2012","2012-2016","2017-2019","2020","2021", "2022-2023"))
+#d_encuesta <- rename(d_encuesta , expresion_oral = Expresion_orial)
+#d_encuesta <- rename(d_encuesta , calculo_matematico = calculo_matemattico)
+d_encuesta <- d_encuesta %>%
+  mutate(orientacion_secundario = recode(orientacion_secundario, "Tecnico-profesional ( Maestro Mayor de obras, Téc en Automotores, etc)" = "Tecnico-profesional"))
+
+```
+
+
+## Ultima pregunta
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ultima_respuesta0=d_encuesta%>% select(estudiante,Facultad, Edad,al_dia,...78)
+ultima_respuesta=na.omit(ultima_respuesta0)
+```
+```{r}
+respuestas_totales=nrow(ultima_respuesta0)
+respuestas_ultima_respuesta=nrow(ultima_respuesta)
+"respuestas totales"
+respuestas_totales
+"respuestas última pregunta"
+respuestas_ultima_respuesta
+
+
+```

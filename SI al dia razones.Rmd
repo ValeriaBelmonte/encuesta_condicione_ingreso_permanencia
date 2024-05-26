@@ -1,0 +1,140 @@
+---
+title: "SI al día"
+author: "Belmonte Valeria"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+  encoding: "UTF-8"
+---
+
+
+
+```{r librerias inciales,  warning=FALSE, cache=FALSE, message=FALSE,echo=FALSE}
+library(tidyverse)
+library(viridis)  #Para seleccionar paletas de color
+library(ggthemes) #Para elegir temas o plantillas de diseño para tu gráfico
+library(hrbrthemes)#Para elegir más temas o plantillas de diseño para tu gráfico
+library(flextable)# para dibujar tablas elegantes
+library(DT) # para tablas grandes 
+#Sys.setlocale(category = "LC_ALL", locale = "Spanish")
+library(ggthemes) # temas para los fondos de los graficos ggplot
+library(paletteer) # para instalar paleta de colores 
+library(treemap)
+```
+
+
+```{r setup, include=FALSE}
+options(encoding = 'UTF-8')
+```
+
+
+```{r datos, warning=FALSE, cache=FALSE, message=FALSE,echo=FALSE}
+#carga de datos 
+
+library(readxl)
+d_encuesta <- read_excel("datos originales/respuesta_11_5.xlsx", 
+    na = "NA")
+d_encuesta<-d_encuesta %>%
+  mutate(Facultad = recode( Facultad,"Veterinarias" = "Cs. Veterinarias", "Ciencias Exactas y Naturales"="Cs. Exactas y Naturales","Ciencias de la Salud"="Cs. de la Salud","Ciencias Económicas y Jurídicas"="Cs. Económicas y Jurídicas","Ciencias Humanas (SR)"="Cs. Humanas(SR)",
+                            "Ciencias Humanas( GP)"="Cs. Humanas(GP)")) 
+d_encuesta<-d_encuesta %>%  mutate(Lugar_de_Origen=recode( Lugar_de_Origen, "Otras localidades de la Prov. de La Pampa"="Otras loc.de la Pampa"))
+d_encuesta$Edad=factor(d_encuesta$Edad, levels=c("Menos de 19 años","19 a 24 años","25 a 34 años","35 a 44 años", "45 a 50 años","Más de 50 años"))
+d_encuesta$Lugar_de_Origen=factor(d_encuesta$Lugar_de_Origen, levels=c("Santa Rosa","General Pico","Otras loc.de la Pampa","Otra Provincia", 	"Otro País"))
+d_encuesta$genero <- factor(d_encuesta$genero, levels = c("Mujer", "Varón", "Otro"))
+d_encuesta$año_e_secundario=factor(d_encuesta$año_e_secundario, levels=c("antes del 2012","2012-2016","2017-2019","2020","2021", "2022-2023"))
+#d_encuesta <- rename(d_encuesta , expresion_oral = Expresion_orial)
+#d_encuesta <- rename(d_encuesta , calculo_matematico = calculo_matemattico)
+d_encuesta <- d_encuesta %>%
+  mutate(orientacion_secundario = recode(orientacion_secundario, "Tecnico-profesional ( Maestro Mayor de obras, Téc en Automotores, etc)" = "Tecnico-profesional"))
+
+```
+
+## Obtencion de info de carreras
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+SI_al_dia=d_encuesta%>% select(estudiante,Facultad, Edad,al_dia, porque_SI_al_dia)
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+"tabla de estudiantes según si llevan la carrea al día"
+table(SI_al_dia$Facultad,SI_al_dia$al_dia)
+```
+```{r}
+es_SI_al_día=sum(SI_al_dia$al_dia=="Si")
+es_SI_al_día
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#1
+SI_al_dia$SI_org_tiempo_estudio=grepl("Pude organizarme con los tiempos de estudio y de cursada", SI_al_dia$porque_SI_al_dia)
+#2
+SI_al_dia$SI_comp_organizacion_cursada=grepl("Comprendí el modo de organización de la cursada", SI_al_dia$porque_SI_al_dia)
+#3
+SI_al_dia$SI_acomp_docentes=grepl("Tuve acompañamiento de docentes cuando surgió una dificultad", SI_al_dia$porque_SI_al_dia)
+#4
+SI_al_dia$SI_acc_material=grepl("Tuve acceso al material de estudio", SI_al_dia$porque_SI_al_dia)
+
+#5
+SI_al_dia$SI_acom_grupo=grepl("Tuve acompañamiento de un grupo de estudio", SI_al_dia$porque_SI_al_dia)
+#6
+SI_al_dia$SI_tiempo_estudio=grepl("Dispongo de todo el tiempo para estudiar y cursar", SI_al_dia$porque_SI_al_dia)
+#7
+SI_al_dia$SI_acomp_tutoria=grepl("Tuve acompañamiento del Programa de Tutoría de Pares y/o de SAPSi", SI_al_dia$porque_SI_al_dia)
+#8
+SI_al_dia$SI_acomp_centro=grepl("El centro de estudiantes/agrupaciones estudiantiles me ayudaron", SI_al_dia$porque_SI_al_dia)
+#9
+SI_al_dia$SI_part_talleres_act=grepl("Participé en talleres y actividades que organizó la facultad", SI_al_dia$porque_SI_al_dia)
+#10
+SI_al_dia$SI_SAPSI=grepl("Recibí acompañamiento del SAPSI", SI_al_dia$porque_SI_al_dia)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#1
+"Pude organizarme con los tiempos de estudio y de cursada"
+sum(SI_al_dia$SI_org_tiempo_estudio=="TRUE")
+sum(SI_al_dia$SI_org_tiempo_estudio=="TRUE")/es_SI_al_día*100
+#2
+"Comprendí el modo de organización de la cursada"
+sum(SI_al_dia$SI_comp_organizacion_cursada=="TRUE")
+sum(SI_al_dia$SI_comp_organizacion_cursada=="TRUE")/es_SI_al_día*100
+#3
+"Tuve acompañamiento de docentes cuando surgió una dificultad"
+sum(SI_al_dia$SI_acomp_docentes=="TRUE")
+sum(SI_al_dia$SI_acomp_docentes=="TRUE")/es_SI_al_día*100
+#4
+
+"Tuve acceso al material de estudio"
+sum(SI_al_dia$SI_acc_material=="TRUE")
+sum(SI_al_dia$SI_acc_material=="TRUE")/es_SI_al_día*100
+
+#5
+"Tuve acompañamiento de un grupo de estudio"
+sum(SI_al_dia$SI_acom_grupo=="TRUE")
+sum(SI_al_dia$SI_acom_grupo=="TRUE")/es_SI_al_día*100
+
+#6
+"Dispongo de todo el tiempo para estudiar y cursar"
+sum(SI_al_dia$SI_tiempo_estudio=="TRUE")
+sum(SI_al_dia$SI_tiempo_estudio=="TRUE")/es_SI_al_día*100
+
+#7
+"Tuve acompañamiento del Programa de Tutoría de Pares y/o de SAPSi"
+sum(SI_al_dia$SI_acomp_tutoria=="TRUE")
+sum(SI_al_dia$SI_acomp_tutoria=="TRUE")/es_SI_al_día*100
+
+#8
+"El centro de estudiantes/agrupaciones estudiantiles me ayudaron"
+sum(SI_al_dia$SI_acomp_centro=="TRUE")
+sum(SI_al_dia$SI_acomp_centro=="TRUE")/es_SI_al_día*100
+
+#9
+"Participé en talleres y actividades que organizó la facultad"
+sum(SI_al_dia$SI_part_talleres_act=="TRUE")
+sum(SI_al_dia$SI_part_talleres_act=="TRUE")/es_SI_al_día*100
+
+#10
+"Recibí acompañamiento del SAPSI"
+sum(SI_al_dia$SI_SAPSI=="TRUE")
+sum(SI_al_dia$SI_SAPSI=="TRUE")/es_SI_al_día*100
+
+```

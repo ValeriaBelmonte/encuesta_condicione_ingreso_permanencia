@@ -1,0 +1,161 @@
+---
+title: "No al día"
+author: "Belmonte Valeria"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+  encoding: "UTF-8"
+---
+
+
+
+```{r librerias inciales,  warning=FALSE, cache=FALSE, message=FALSE,echo=FALSE}
+library(tidyverse)
+library(viridis)  #Para seleccionar paletas de color
+library(ggthemes) #Para elegir temas o plantillas de diseño para tu gráfico
+library(hrbrthemes)#Para elegir más temas o plantillas de diseño para tu gráfico
+library(flextable)# para dibujar tablas elegantes
+library(DT) # para tablas grandes 
+#Sys.setlocale(category = "LC_ALL", locale = "Spanish")
+library(ggthemes) # temas para los fondos de los graficos ggplot
+library(paletteer) # para instalar paleta de colores 
+library(treemap)
+```
+
+
+```{r setup, include=FALSE}
+options(encoding = 'UTF-8')
+```
+
+
+```{r datos, warning=FALSE, cache=FALSE, message=FALSE,echo=FALSE}
+#carga de datos 
+
+library(readxl)
+d_encuesta <- read_excel("datos originales/respuesta_11_5.xlsx", 
+    na = "NA")
+d_encuesta<-d_encuesta %>%
+  mutate(Facultad = recode( Facultad,"Veterinarias" = "Cs. Veterinarias", "Ciencias Exactas y Naturales"="Cs. Exactas y Naturales","Ciencias de la Salud"="Cs. de la Salud","Ciencias Económicas y Jurídicas"="Cs. Económicas y Jurídicas","Ciencias Humanas (SR)"="Cs. Humanas(SR)",
+                            "Ciencias Humanas( GP)"="Cs. Humanas(GP)")) 
+d_encuesta<-d_encuesta %>%  mutate(Lugar_de_Origen=recode( Lugar_de_Origen, "Otras localidades de la Prov. de La Pampa"="Otras loc.de la Pampa"))
+d_encuesta$Edad=factor(d_encuesta$Edad, levels=c("Menos de 19 años","19 a 24 años","25 a 34 años","35 a 44 años", "45 a 50 años","Más de 50 años"))
+d_encuesta$Lugar_de_Origen=factor(d_encuesta$Lugar_de_Origen, levels=c("Santa Rosa","General Pico","Otras loc.de la Pampa","Otra Provincia", 	"Otro País"))
+d_encuesta$genero <- factor(d_encuesta$genero, levels = c("Mujer", "Varón", "Otro"))
+d_encuesta$año_e_secundario=factor(d_encuesta$año_e_secundario, levels=c("antes del 2012","2012-2016","2017-2019","2020","2021", "2022-2023"))
+#d_encuesta <- rename(d_encuesta , expresion_oral = Expresion_orial)
+#d_encuesta <- rename(d_encuesta , calculo_matematico = calculo_matemattico)
+d_encuesta <- d_encuesta %>%
+  mutate(orientacion_secundario = recode(orientacion_secundario, "Tecnico-profesional ( Maestro Mayor de obras, Téc en Automotores, etc)" = "Tecnico-profesional"))
+
+```
+
+## Obtencion de info de carreras
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+No_al_dia=d_encuesta%>% select(estudiante,Facultad, Edad,al_dia, porque_NO_al_dia)
+
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+"tabla de estudiantes según si llevan la carrea al día"
+table(No_al_dia$Facultad,No_al_dia$al_dia)
+```
+```{r}
+es_no_al_día=sum(No_al_dia$al_dia=="No")
+es_no_al_día
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#1
+No_al_dia$org_tiempo_estudio=grepl("No me pude organizar con los tiempos de estudio", No_al_dia$porque_NO_al_dia)
+#2
+No_al_dia$dif_h_cursada=grepl("Tuve dificultades de horario para cursar", No_al_dia$porque_NO_al_dia)
+#3
+No_al_dia$comprension_materia=grepl("Me costó comprender la materia", No_al_dia$porque_NO_al_dia)
+#4
+No_al_dia$desaprobe_desa=grepl("Porque desaprobé y me desanimé", No_al_dia$porque_NO_al_dia)
+#5
+No_al_dia$no_com_sistema=grepl("No comprendí el sistema de cursado de la asignatura", No_al_dia$porque_NO_al_dia)
+#6
+No_al_dia$carga_horaria=grepl("El cursado requería excesiva carga horaria presencial y de lectura de material bibliográfico", No_al_dia$porque_NO_al_dia)
+#7
+No_al_dia$sin_acc_material=grepl("No pude acceder al material de estudio", No_al_dia$porque_NO_al_dia)
+#8
+No_al_dia$sin_acompa_doc=grepl("No tuve  acompañamiento de  los docentes cuando surgió una dificultad", No_al_dia$porque_NO_al_dia)
+#9
+No_al_dia$dif_a_virtual=grepl("Tuve dificultades con el aula virtual", No_al_dia$porque_NO_al_dia)
+#10
+No_al_dia$conectividad=grepl("Tuve problemas de conectividad", No_al_dia$porque_NO_al_dia)
+
+#11
+No_al_dia$prob_personales=grepl("Tuve problemas personales", No_al_dia$porque_NO_al_dia)
+
+#12
+No_al_dia$dif_economicas=grepl("Por dificultades económicas, tuve que trabajar y dejar de cursar", No_al_dia$porque_NO_al_dia)
+#2
+No_al_dia$adap_vida_univ=grepl("Considero que me costo adaptarme a la vida universitaria", No_al_dia$porque_NO_al_dia)
+#2
+No_al_dia$sin_grupo_estudio=grepl("No logré constituir  grupos de estudio", No_al_dia$porque_NO_al_dia)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+"No me pude organizar con los tiempos de estudio"
+sum(No_al_dia$org_tiempo_estudio=="TRUE")
+sum(No_al_dia$org_tiempo_estudio=="TRUE")/es_no_al_día*100
+
+"Tuve dificultades de horario para cursar"
+sum(No_al_dia$dif_h_cursada=="TRUE")
+sum(No_al_dia$dif_h_cursada=="TRUE")/es_no_al_día*100
+
+"Me costó comprender la materia"
+sum(No_al_dia$comprension_materia=="TRUE")
+sum(No_al_dia$comprension_materia=="TRUE")/es_no_al_día*100
+
+"Porque desaprobé y me desanimé"
+
+sum(No_al_dia$desaprobe_desa=="TRUE")
+sum(No_al_dia$desaprobe_desa=="TRUE")/es_no_al_día*100
+
+"No comprendí el sistema de cursado de la asignatura"
+sum(No_al_dia$no_com_sistema=="TRUE")
+sum(No_al_dia$no_com_sistema=="TRUE")/es_no_al_día*100
+
+"El cursado requería excesiva carga horaria presencial y de lectura de material bibliográfico"
+sum(No_al_dia$carga_horaria=="TRUE")
+sum(No_al_dia$carga_horaria=="TRUE")/es_no_al_día*100
+
+"No pude acceder al material de estudio"
+sum(No_al_dia$sin_acc_material=="TRUE")
+sum(No_al_dia$sin_acc_material=="TRUE")/es_no_al_día*100
+
+"No tuve  acompañamiento de  los docentes cuando surgió una dificultad"
+sum(No_al_dia$sin_acompa_doc=="TRUE")
+sum(No_al_dia$sin_acompa_doc=="TRUE")/es_no_al_día*100
+
+"Tuve dificultades con el aula virtual"
+sum(No_al_dia$dif_a_virtual=="TRUE")
+sum(No_al_dia$dif_a_virtual=="TRUE")/es_no_al_día*100
+
+"Tuve problemas de conectividad"
+sum(No_al_dia$conectividad=="TRUE")
+sum(No_al_dia$conectividad=="TRUE")/es_no_al_día*100
+
+"Tuve problemas personales"
+
+sum(No_al_dia$prob_personales=="TRUE")
+sum(No_al_dia$prob_personales=="TRUE")/es_no_al_día*100
+
+"Por dificultades económicas, tuve que trabajar y dejar de cursar"
+sum(No_al_dia$dif_economicas=="TRUE")
+sum(No_al_dia$dif_economicas=="TRUE")/es_no_al_día*100
+
+"Considero que me costo adaptarme a la vida universitaria"
+sum(No_al_dia$adap_vida_univ=="TRUE")
+sum(No_al_dia$adap_vida_univ=="TRUE")/es_no_al_día*100
+
+"No logré constituir  grupos de estudio"
+sum(No_al_dia$sin_grupo_estudio=="TRUE")
+sum(No_al_dia$sin_grupo_estudio=="TRUE")/es_no_al_día*100
+
+```
+
+

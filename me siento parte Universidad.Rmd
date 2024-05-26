@@ -1,0 +1,111 @@
+---
+title: "Me siento parte de la universidad"
+author: "Belmonte Valeria"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+  encoding: "UTF-8"
+---
+
+
+
+```{r librerias inciales,  warning=FALSE, cache=FALSE, message=FALSE,echo=FALSE}
+library(tidyverse)
+library(viridis)  #Para seleccionar paletas de color
+library(ggthemes) #Para elegir temas o plantillas de diseño para tu gráfico
+library(hrbrthemes)#Para elegir más temas o plantillas de diseño para tu gráfico
+library(flextable)# para dibujar tablas elegantes
+library(DT) # para tablas grandes 
+#Sys.setlocale(category = "LC_ALL", locale = "Spanish")
+library(ggthemes) # temas para los fondos de los graficos ggplot
+library(paletteer) # para instalar paleta de colores 
+library(treemap)
+```
+
+
+```{r setup, include=FALSE}
+options(encoding = 'UTF-8')
+```
+
+
+```{r datos, warning=FALSE, cache=FALSE, message=FALSE,echo=FALSE}
+#carga de datos 
+
+library(readxl)
+d_encuesta <- read_excel("datos originales/respuesta_11_5.xlsx", 
+    na = "NA")
+d_encuesta<-d_encuesta %>%
+  mutate(Facultad = recode( Facultad,"Veterinarias" = "Cs. Veterinarias", "Ciencias Exactas y Naturales"="Cs. Exactas y Naturales","Ciencias de la Salud"="Cs. de la Salud","Ciencias Económicas y Jurídicas"="Cs. Económicas y Jurídicas","Ciencias Humanas (SR)"="Cs. Humanas(SR)",
+                            "Ciencias Humanas( GP)"="Cs. Humanas(GP)")) 
+d_encuesta<-d_encuesta %>%  mutate(Lugar_de_Origen=recode( Lugar_de_Origen, "Otras localidades de la Prov. de La Pampa"="Otras loc.de la Pampa"))
+d_encuesta$Edad=factor(d_encuesta$Edad, levels=c("Menos de 19 años","19 a 24 años","25 a 34 años","35 a 44 años", "45 a 50 años","Más de 50 años"))
+d_encuesta$Lugar_de_Origen=factor(d_encuesta$Lugar_de_Origen, levels=c("Santa Rosa","General Pico","Otras loc.de la Pampa","Otra Provincia", 	"Otro País"))
+d_encuesta$genero <- factor(d_encuesta$genero, levels = c("Mujer", "Varón", "Otro"))
+d_encuesta$año_e_secundario=factor(d_encuesta$año_e_secundario, levels=c("antes del 2012","2012-2016","2017-2019","2020","2021", "2022-2023"))
+#d_encuesta <- rename(d_encuesta , expresion_oral = Expresion_orial)
+#d_encuesta <- rename(d_encuesta , calculo_matematico = calculo_matemattico)
+d_encuesta <- d_encuesta %>%
+  mutate(orientacion_secundario = recode(orientacion_secundario, "Tecnico-profesional ( Maestro Mayor de obras, Téc en Automotores, etc)" = "Tecnico-profesional"))
+
+```
+
+## completar frase.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+res_completar_frase=d_encuesta%>% select(estudiante,Facultad, Edad,al_dia, completar_frase)
+
+```
+```{r}
+respuestas_p_26=nrow(res_completar_frase)
+respuestas_p_26
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#1
+res_completar_frase$carrera_gusta=grepl("Curso la carrera que me gusta", res_completar_frase$completar_frase)
+#2
+res_completar_frase$hice_amigos=grepl("Hice un grupo de amigos", res_completar_frase$completar_frase)
+#3
+res_completar_frase$hago_deporte=grepl("Participo en actividades deportivas", res_completar_frase$completar_frase)
+#4
+res_completar_frase$centro_estudiantes=grepl("Participo en el centro de estudiantes", res_completar_frase$completar_frase)
+
+#5
+res_completar_frase$programas_institucionales=grepl("Participo en programas institucionales (tutorias, difusión, etc)", res_completar_frase$completar_frase)
+#6
+res_completar_frase$participo_investigacion=grepl("Participo en proyectos de investigación/ extensión", res_completar_frase$completar_frase)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#1
+"Curso la carrera que me gusta"
+sum(res_completar_frase$carrera_gusta=="TRUE")
+sum(res_completar_frase$carrera_gusta=="TRUE")/respuestas_p_26*100
+#2
+"Hice un grupo de amigos"
+sum(res_completar_frase$hice_amigos=="TRUE")
+sum(res_completar_frase$hice_amigos=="TRUE")/respuestas_p_26*100
+#3
+"Participo en actividades deportivas"
+sum(res_completar_frase$hago_deporte=="TRUE")
+sum(res_completar_frase$hago_deporte=="TRUE")/respuestas_p_26*100
+#4
+
+"Participo en el centro de estudiantes"
+sum(res_completar_frase$centro_estudiantes=="TRUE")
+sum(res_completar_frase$centro_estudiantes=="TRUE")/respuestas_p_26*100
+
+#5
+"Participo en programas institucionales (tutorias, difusión, etc)"
+sum(res_completar_frase$programas_institucionales=="TRUE")
+sum(res_completar_frase$programas_institucionales=="TRUE")/respuestas_p_26*100
+
+#6
+"Participo en proyectos de investigación/ extensión"
+sum(res_completar_frase$participo_investigacion=="TRUE")
+sum(res_completar_frase$participo_investigacion=="TRUE")/respuestas_p_26*100
+
+```
+
